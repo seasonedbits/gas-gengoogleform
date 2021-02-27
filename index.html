@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<base target="_top">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	function onSuccess(url) {
+      console.log(url)
+      url.forEach(a => console.log(a));
+      return;
+
+      var a = document.createElement("a"); 
+      a.href = url;
+      a.target = "_blank";
+      window.close = function () {
+        window.setTimeout(function() {
+          google.script.host.close();
+        }, 9);
+      };
+      if (document.createEvent) {
+        var event = document.createEvent("MouseEvents");
+        if (navigator.userAgent.toLowerCase().indexOf("firefox") > -1) {
+          window.document.body.append(a);
+        }                        
+        event.initEvent("click", true, true); 
+        a.dispatchEvent(event);
+      } else {
+        a.click();
+      }
+      close();
+    }
+
+    function onFailure(url) {
+      var div = document.getElementById('failureContent');
+      var link = '<a href="' + url + '" target="_blank">Process</a>';
+      div.innerHtml = "Failure to open automatically: " + link;
+    }
+
+    google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).getUnitsAsArray();
+</script>
+
+<body>
+	<div id="failureContent"></div>
+  <code>testSheet();</code>
+</body>
+
+</html>

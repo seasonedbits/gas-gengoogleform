@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<base target="_top">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	console.log("here");
+  function onSuccess(units) {
+    console.log('onSuccess', units);
+    var list = $('#units');
+    // list.empty();
+    for (var i = 0; i < units.length; i++) {
+      list.append(`<input type="checkbox" id="${units[i]}" name="units" value="${units[i]}"/>`);
+      list.append(`<label for="${units[i]}">${units[i]}</label><br/>`);
+    }
+  }
+  
+  function onFailure(err) {
+    console.log("onFailure", err);
+  }
+  
+  function handleFormSubmit(form) {
+    const data = new FormData(form);
+    console.log([...data.entries()]);
+
+    // this should be a `GetQuestionsOptions`
+    var options = {
+      units: [],
+      numQuestions: 15,
+      choicesIncluded: false,
+      numChoices: 4,
+    };
+
+    for(let [name, value] of data) {
+      // TODO: use type of input box to determine where to put
+      if (name == 'units') {
+        options[name].push(value);
+      } else {
+        options[name] = value;
+      }
+    }
+
+    // type conversion
+    options.numQuestions = Number(options.numQuestions);
+    options.choicesIncluded = !!options.choicesIncluded;
+    options.numChoices = Number(options.numChoices);
+    console.log(options);
+
+    google.script.run.withSuccessHandler(() => console.log("done")).withFailureHandler(onFailure).processForm(options);
+  }
+
+  $(() => {
+    console.log("ready");
+    google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).getUnitsAsArray();
+  });
+</script>
+
+<body>
+	<form id="myForm" onsubmit="handleFormSubmit(this)">
+    請確保你的表格<br/>
+    <ol>
+      <li>第一欄為<b>單元</b></li>
+      <li>第二欄為<b>題目</b></li>
+      <li>第三欄為<b>答案</b></li>
+      <li>如使用表格內選項, 第三欄後有<b>選項數目</b>欄, 並且當中包括<b>答案</b></li>
+    </ol>
+    <hr/>
+
+		<label for="fname">單元 (可多選)</label><br/>
+		<span id="units"> </span><br/>
+
+		<label for="fname">題目數目</label>
+		<input type="number" id="numQuestions" name="numQuestions" min="1" max="20" value="15"/><br/>
+		<br/>
+
+		<input type="checkbox" id="choicesIncluded" name="choicesIncluded" />
+		<label for="choicesIncluded">使用表格內選項</label><br/>
+		<label for="fname">選項數目</label>
+		<input type="number" id="numChoices" name="numChoices" min="1" max="10" value="4"/><br/>
+		<br/>
+
+    選好題目表格再按遞交<br/>
+		<input type="submit" value="遞交" />
+  </form>
+</body>
+
+</html>
