@@ -17,44 +17,53 @@ function shuffle(array) {
 
 /**
  * Get unique values of a column as a `Set`.
- * 
+ *
  * @param {Number} column The column index, starting from 1.
  * @param {boolean} [skipHeader=true] Whether to treat the first row as header and skip it.
  * @return {Set} The unique values.
  */
 function getUniqueColumnValues(column, skipHeader = true) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var offset = (skipHeader) ? 1 : 0;
-  var values = sheet.getRange(1 + offset, column, sheet.getLastRow() - offset).getValues();
+  var offset = skipHeader ? 1 : 0;
+  var values = sheet
+    .getRange(1 + offset, column, sheet.getLastRow() - offset)
+    .getValues();
 
   return new Set(values.flat(1));
 }
 
 /**
  * Get unique values of a column as a `Set`, with filtering.
- * 
+ *
  * @param {Number} column The column index, starting from 1.
  * @property {Number} filterColumn The column index, starting from 1, to filter on.
  * @property {Array<String>|Set<String>} filterValues Values to match to.
  * @param {boolean} [skipHeader=true] Whether to treat the first row as header and skip it.
  * @return {Set} The unique values.
  */
-function getUniqueColumnValuesByFilter(column, filterColumn, filterValues, skipHeader = true) {
+function getUniqueColumnValuesByFilter(
+  column,
+  filterColumn,
+  filterValues,
+  skipHeader = true
+) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var offset = (skipHeader) ? 1 : 0;
-  var values = sheet.getRange(1 + offset, 1, sheet.getLastRow() - offset, sheet.getLastColumn()).getValues();
+  var offset = skipHeader ? 1 : 0;
+  var values = sheet
+    .getRange(1 + offset, 1, sheet.getLastRow() - offset, sheet.getLastColumn())
+    .getValues();
   // assure `filterValues` is a Set
   filterValues = new Set(filterValues);
 
   return new Set(
     values
-      .filter(row => filterValues.has(row[filterColumn-1]))  // filter by filterValues
-      .map(row => row[column-1])  // pick column
+      .filter((row) => filterValues.has(row[filterColumn - 1])) // filter by filterValues
+      .map((row) => row[column - 1]) // pick column
   );
 }
 
 function getUnits() {
-  return getUniqueColumnValues(UNIT_COL+1);
+  return getUniqueColumnValues(UNIT_COL + 1);
 }
 
 // function returning Set cannot be called in HTML Service
@@ -63,11 +72,11 @@ function getUnitsAsArray() {
 }
 
 function getAnswers() {
-  return getUniqueColumnValues(ANSWER_COL+1);
+  return getUniqueColumnValues(ANSWER_COL + 1);
 }
 
 function getAnswersByUnits(units) {
-  return getUniqueColumnValuesByFilter(ANSWER_COL+1, UNIT_COL+1, units);
+  return getUniqueColumnValuesByFilter(ANSWER_COL + 1, UNIT_COL + 1, units);
 }
 
 /*
@@ -92,16 +101,22 @@ function getAnswersByUnits(units) {
  */
 function getQuestions(options) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  console.log(`Reading from sheetid[${sheet.getSheetId()}] name[${sheet.getSheetName()}]`);
+  console.log(
+    `Reading from sheetid[${sheet.getSheetId()}] name[${sheet.getSheetName()}]`
+  );
   // skip header row
-  var values = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var values = sheet
+    .getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn())
+    .getValues();
   // assure `units` is a Set
   var units = new Set(options.units);
 
   var questions = values;
   if (units.size)
-    questions = questions.filter(row => units.has(row[UNIT_COL]));  // filter by units
-  console.log(`[${values.length}] questions before units filter, [${questions.length}] questions after`);
+    questions = questions.filter((row) => units.has(row[UNIT_COL])); // filter by units
+  console.log(
+    `[${values.length}] questions before units filter, [${questions.length}] questions after`
+  );
 
   // prepare convert function, genChoices() uses closure for performance's sake
   var convertRowToQuestion;
@@ -113,43 +128,46 @@ function getQuestions(options) {
         title: row[TITLE_COL],
         answer: row[ANSWER_COL],
         // get next `numChoices` columns as choices
-        choices: row.slice(ANSWER_COL + 1, ANSWER_COL + 1 + options.numChoices)  // end - start items will be sliced
-      }
-    }
-  }
-  else {
+        choices: row.slice(ANSWER_COL + 1, ANSWER_COL + 1 + options.numChoices), // end - start items will be sliced
+      };
+    };
+  } else {
     // generate choices from all answers
     // need to be from the same unit?
-    var answers = [...getAnswers()]; /** @type: {Array<String>} */
+    var answers = [...getAnswers()];
+
+    /** @type: {Array<String>} */
 
     // generate `numChoices` from `answers`
     // `answer` must be included
     var genChoices = (answers, numChoices, answer) => {
-      const shuffled = shuffle(answers); /** @type: {Array<String>} */
+      const shuffled = shuffle(answers);
+
+      /** @type: {Array<String>} */
 
       // randomly pick `numChoices-1` items from `answers`
-      const choices = shuffled.slice(0, numChoices - 1); /** @type: {Array<String>} */
+      const choices = shuffled.slice(0, numChoices - 1);
+      /** @type: {Array<String>} */
       // see if `answer` is in it
       const idx = choices.indexOf(answer);
       if (idx == -1) {
         // not found, add answer to choices
         choices.splice(Math.random() * numChoices, 0, answer);
-      }
-      else {
-        // answer already in choices, add next item 
+      } else {
+        // answer already in choices, add next item
         choices.push(shuffled[numChoices]);
       }
       return choices;
-    }
+    };
 
     convertRowToQuestion = (row) => {
       return {
         unit: row[UNIT_COL],
         title: row[TITLE_COL],
         answer: row[ANSWER_COL],
-        choices: genChoices(answers, options.numChoices, row[ANSWER_COL])
-      }
-    }
+        choices: genChoices(answers, options.numChoices, row[ANSWER_COL]),
+      };
+    };
   }
 
   // randomize and pick numQuestions
