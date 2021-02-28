@@ -19,14 +19,13 @@ function addQuestion(form, question) {
  * @param {GetQuestionsOptions} options The options for generating questions.
  */
 function generateGoogleForm(questions, options) {
-  // var form = FormApp.openById('1d3agbttx1DN-aa7IIkdUPJJLc6LL_MdR1E_PqcCSl0g')
   const datetime = Utilities.formatDate(
     new Date(),
     "GMT+8",
     "yyyy-MM-dd HH:mm:ss"
   );
   console.log(`created form @${datetime}`);
-  var form = FormApp.create(`LS Concept`);
+  var form = FormApp.create(options.formTitle);
   form.setDescription(
     `於${datetime}生成。[${options.units.join(", ")}]。共 ${
       questions.length

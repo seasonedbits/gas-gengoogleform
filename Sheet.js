@@ -66,11 +66,6 @@ function getUnits() {
   return getUniqueColumnValues(UNIT_COL + 1);
 }
 
-// function returning Set cannot be called in HTML Service
-function getUnitsAsArray() {
-  return [...getUnits()];
-}
-
 function getAnswers() {
   return getUniqueColumnValues(ANSWER_COL + 1);
 }
@@ -81,7 +76,7 @@ function getAnswersByUnits(units) {
 
 /*
  * Options for generating questions.
- * @typedef {Object} GetQuestionsOptions
+ * @typedef {Object} GenGoogleFormOptions
  * @param {Array[String]|Set[String]} units The set of selected units from which to generate questions.
  * @param {Number} numQuestions Number of questions to select.
  * @param {boolean} choicesIncluded Whether the sheet includes choices.
@@ -91,13 +86,13 @@ function getAnswersByUnits(units) {
  * Question structure for generating form.
  * @typedef {Object} Question
  * @param {String} unit The units for this question.
- * @param {String} title The title for this question, used as the actual qusestion.
+ * @param {String} title The title for this question, used as the actual question.
  * @param {String} answer The answer for this question.
  * @param {Array[String]} choices The choices for this question, answer should be one of them. */
 /**
  * Generate questions from according to option.
  *
- * @param {GetQuestionsOptions} options The options for generating questions.
+ * @param {GenGoogleFormOptions} options The options for generating questions.
  */
 function getQuestions(options) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();

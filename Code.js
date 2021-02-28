@@ -1,9 +1,4 @@
 // UI
-// TODO:
-// genereate multi-select choices with `getUnits()`
-// pass selected `units` to gs
-// filter questions from selected `units` and then randomly pick 20
-// generate form with text input from the 20 questions
 
 function onOpen() {
   var menu = SpreadsheetApp.getUi() // Or DocumentApp or SlidesApp or FormApp.
@@ -13,10 +8,16 @@ function onOpen() {
 }
 
 function showSideBar() {
-  var template = HtmlService.createHtmlOutputFromFile("sidebar2").setTitle(
-    "Create Google Form"
-  );
+  var template = HtmlService.createTemplateFromFile("sidebar2")
+    .evaluate()
+    .setTitle("Create Google Form");
   SpreadsheetApp.getUi().showSidebar(template);
+}
+
+// function returning Set cannot be called in HTML Service
+// we use template to return JSON to it
+function getUnitsAsJSON() {
+  return JSON.stringify([...getUnits()]);
 }
 
 function processForm(options) {

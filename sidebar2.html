@@ -3,8 +3,7 @@
   <base target="_top" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script>
-    console.log("here");
-    function onSuccess(units) {
+    function updateUnitsList(units) {
       console.log("onSuccess", units);
       var list = $("#units");
       // list.empty();
@@ -22,10 +21,10 @@
 
     function handleFormSubmit(form) {
       const data = new FormData(form);
-      console.log([...data.entries()]);
 
       // this should be a `GetQuestionsOptions`
       var options = {
+        formTitle: "",
         units: [],
         numQuestions: 15,
         choicesIncluded: false,
@@ -33,7 +32,6 @@
       };
 
       for (let [name, value] of data) {
-        // TODO: use type of input box to determine where to put
         if (name == "units") {
           options[name].push(value);
         } else {
@@ -55,10 +53,8 @@
 
     $(() => {
       console.log("ready");
-      google.script.run
-        .withSuccessHandler(onSuccess)
-        .withFailureHandler(onFailure)
-        .getUnitsAsArray();
+      var data = JSON.parse(<?= getUnitsAsJSON() ?>);
+      updateUnitsList(data);
     });
   </script>
 
@@ -74,6 +70,15 @@
         </li>
       </ol>
       <hr />
+
+      <label for="fname">問卷標題</label>
+      <input
+        type="text"
+        id="formTitle"
+        name="formTitle"
+        value="<?= SpreadsheetApp.getActiveSpreadsheet().getName() ?>"
+      /><br />
+      <br />
 
       <label for="fname">單元 (可多選)</label><br />
       <span id="units"> </span><br />
@@ -102,7 +107,7 @@
       /><br />
       <br />
 
-      選好題目表格再按遞交<br />
+      選好問卷表格再按遞交<br />
       <input type="submit" value="遞交" />
     </form>
   </body>
